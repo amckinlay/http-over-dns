@@ -46,12 +46,12 @@ class DNSResourceRecord:
 class DNSMessage:
     def __init__(self,
                  header,
-                 questions=[],
-                 answers=[],
-                 authority=[],
-                 additional=[]):
+                 questions=None,
+                 answers=None,
+                 authority=None,
+                 additional=None):
         self.header = header
-        self.questions = questions
-        self.answers = answers
-        self.authority = authority
-        self.additional = additional
+        self.questions = questions or []
+        self.answers = answers or []
+        self.authority = authority or []
+        self.additional = additional or []
