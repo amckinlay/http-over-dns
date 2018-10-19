@@ -1,3 +1,10 @@
+def encode_hostname(hostname):
+    encoded_hostname = b''
+    for label in hostname.split(b'.'):
+        encoded_hostname += bytes([len(label)]) + label
+    return encoded_hostname
+
+
 class DNSHeader:
     def __init__(self,
                  id_,
@@ -25,12 +32,35 @@ class DNSHeader:
         self.arcount = arcount
         self.nscount = nscount
 
+    def encode(self):
+        id_bytes = self.id.to_bytes(2, "big")
+        third_byte = bytes([self.qr << 7
+                            | self.opcode << 6
+                            | self.aa << 2
+                            | self.tc << 1
+                            | self.rd])
+        fourth_byte = bytes([self.ra << 7 | self.rcode])
+        qdcount_bytes = self.qdcount.to_bytes(2, "big")
+        ancount_bytes = self.ancount.to_bytes(2, "big")
+        nscount_bytes = self.nscount.to_bytes(2, "big")
+        arcount_bytes = self.arcount.to_bytes(2, "big")
+        return (id_bytes
+                + third_byte
+                + fourth_byte
+                + qdcount_bytes
+                + ancount_bytes
+                + nscount_bytes
+                + arcount_bytes)
+
 
 class DNSQuestion:
     def __init__(self, qname, qtype, qclass):
         self.qname = qname
         self.qtype = qtype
         self.qclass = qclass
+
+    def encode(self):
+        return encode_hostname(self.qname) + self.qtype + self.qclass
 
 
 class DNSResourceRecord:
@@ -41,6 +71,14 @@ class DNSResourceRecord:
         self.ttl = ttl
         self.rdlength = rdlength
         self.rdata = rdata
+
+    def encode(self):
+        return (encode_hostname(self.name)
+                + self.type
+                + self.class_
+                + self.ttl.to_bytes(4, "big")
+                + self.rdlength.to_bytes(2, "big")
+                + self.rdata)
 
 
 class DNSMessage:
@@ -55,3 +93,15 @@ class DNSMessage:
         self.answers = answers or []
         self.authority = authority or []
         self.additional = additional or []
+
+    def encode(self):
+        encoded_msg = self.header.encode()
+        for question in self.questions:
+            encoded_msg += question.encode()
+        for ans in self.answers:
+            encoded_msg += ans.encode()
+        for authoritative_ans in self.authority:
+            encoded_msg += authoritative_ans.encode()
+        for additional_ans in self.additional:
+            encoded_msg += additional_ans.encode()
+        return encoded_msg
