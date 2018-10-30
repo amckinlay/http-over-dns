@@ -5,6 +5,20 @@ def encode_hostname(hostname):
     return encoded_hostname
 
 
+def decode_hostname(bytes_):
+    decoded_hostname = b''
+    ptr = 0
+    while ptr < len(bytes_):
+        label_len = bytes_[ptr]
+        ptr += 1
+        if label_len > 0:
+            label = bytes_[ptr:ptr + label_len]
+            decoded_hostname += label
+        decoded_hostname += b'.'
+        ptr += label_len
+    return decoded_hostname
+
+
 class DNSHeader:
     def __init__(self,
                  id_,
@@ -61,6 +75,13 @@ class DNSQuestion:
 
     def encode(self):
         return encode_hostname(self.qname) + self.qtype + self.qclass
+
+    def decode(self, bytes_):
+        null_label_ptr = bytes_.find(b'\0')
+        decoded_hostname = decode_hostname(bytes_[0:null_label_ptr + 1])
+        decoded_qtype = bytes_[null_label_ptr + 1:null_label_ptr + 3]
+        decoded_qclass = bytes_[null_label_ptr + 3:null_label_ptr + 5]
+        # TODO: make decoder methods into class/static methods that construct objects
 
 
 class DNSResourceRecord:
