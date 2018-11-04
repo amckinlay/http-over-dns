@@ -94,20 +94,19 @@ class DNSQuestion:
 
 
 class DNSResourceRecord:
-    def __init__(self, name, type_, class_, ttl, rdlength, rdata):
+    def __init__(self, name, type_, class_, ttl, rdata):
         self.name = name
         self.type = type_
         self.class_ = class_
         self.ttl = ttl
-        self.rdlength = rdlength
         self.rdata = rdata
 
-    def encode(self):
+    def encode(self) -> bytes:
         return (encode_hostname(self.name)
-                + self.type
-                + self.class_
-                + self.ttl.to_bytes(4, "big")
-                + self.rdlength.to_bytes(2, "big")
+                + self.type.to_bytes(length=2, byteorder="big")
+                + self.class_.encode("ascii")
+                + self.ttl.to_bytes(length=4, byteorder="big")
+                + len(self.rdata).to_bytes(length=2, byteorder="big")
                 + self.rdata)
 
 
