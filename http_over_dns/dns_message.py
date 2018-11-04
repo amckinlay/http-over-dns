@@ -12,21 +12,18 @@ def encode_hostname(hostname: str) -> bytes:
     return encoded
 
 
-def decode_hostname(bytes_):
+def decode_hostname(labels: bytes) -> str:
     '''
     Decode a hostname from the length-value format used by DNS.
     '''
-    decoded_hostname = b''
+    labels_list = []
     ptr = 0
-    while ptr < len(bytes_):
-        label_len = bytes_[ptr]
+    while ptr < len(labels):
+        label_len = labels[ptr]
         ptr += 1
-        if label_len > 0:
-            label = bytes_[ptr:ptr + label_len]
-            decoded_hostname += label
-        decoded_hostname += b'.'
+        labels_list.append(labels[ptr:ptr + label_len].decode("ascii"))
         ptr += label_len
-    return decoded_hostname
+    return ".".join(labels_list)
 
 
 class DNSHeader:
