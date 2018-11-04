@@ -80,8 +80,10 @@ class DNSQuestion:
         self.qtype = qtype
         self.qclass = qclass
 
-    def encode(self):
-        return encode_hostname(self.qname) + self.qtype + self.qclass
+    def encode(self) -> bytes:
+        return (encode_hostname(self.qname)
+                + self.qtype.to_bytes(length=2, byteorder="big")
+                + self.qclass.encode("ascii"))
 
     def decode(self, bytes_):
         null_label_ptr = bytes_.find(b'\0')
