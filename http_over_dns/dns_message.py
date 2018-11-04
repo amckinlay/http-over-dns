@@ -1,3 +1,6 @@
+from typing import Type, TypeVar
+
+
 def encode_hostname(hostname: str) -> bytes:
     '''
     Encode a hostname into the length-value format used by DNS.
@@ -74,6 +77,7 @@ class DNSHeader:
                 + arcount_bytes)
 
 
+T = TypeVar('T', bound='DNSQuestion')
 class DNSQuestion:
     def __init__(self, qname, qtype, qclass):
         self.qname = qname
@@ -85,12 +89,20 @@ class DNSQuestion:
                 + self.qtype.to_bytes(length=2, byteorder="big")
                 + self.qclass.encode("ascii"))
 
-    def decode(self, bytes_):
-        null_label_ptr = bytes_.find(b'\0')
-        decoded_hostname = decode_hostname(bytes_[0:null_label_ptr + 1])
-        decoded_qtype = bytes_[null_label_ptr + 1:null_label_ptr + 3]
-        decoded_qclass = bytes_[null_label_ptr + 3:null_label_ptr + 5]
-        # TODO: make decoder methods into class/static methods that construct objects
+    @classmethod
+    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
+        # find the last byte in qname (the null label)
+        qname_end = buf.index(b'\0', ptr)
+        qname_bytes = buf[ptr:ptr + qname_end + 1]
+        ptr += qname_end + 1
+        qtype_bytes = buf[ptr:ptr + 2]
+        ptr += 2
+        qclass_bytes = buf[ptr:ptr + 2]
+
+        question = cls(qname = decode_hostname(qname_bytes),
+                       qtype = int.from_bytes(qtype_bytes, byteorder="big"),
+                       qclass = qclass_bytes.decode("ascii"))
+        return (question, ptr + 2)
 
 
 class DNSResourceRecord:
