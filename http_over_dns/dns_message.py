@@ -30,6 +30,8 @@ def decode_hostname(labels: bytes) -> str:
 
 T = TypeVar('T', bound='DNSHeader')
 class DNSHeader:
+    '''The header section of a DNS message.'''
+
     def __init__(self,
                  id_,
                  qr,
@@ -94,6 +96,8 @@ class DNSHeader:
 
 T = TypeVar('T', bound='DNSQuestion')
 class DNSQuestion:
+    '''Represents a question used to query a server in the questions section of a DNS message.'''
+
     def __init__(self, qname, qtype, qclass):
         self.qname = qname
         self.qtype = qtype
@@ -122,6 +126,8 @@ class DNSQuestion:
 
 T = TypeVar('T', bound='DNSResourceRecord')
 class DNSResourceRecord:
+    '''Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message.'''
+
     def __init__(self, name, type_, class_, ttl, rdata):
         self.name = name
         self.type = type_
@@ -163,6 +169,8 @@ class DNSResourceRecord:
 
 T = TypeVar('T', bound='DNSMessage')
 class DNSMessage:
+    '''Represents a DNS protocol message as defined by RFC 1035.'''
+
     def __init__(self,
                  header,
                  questions=None,
