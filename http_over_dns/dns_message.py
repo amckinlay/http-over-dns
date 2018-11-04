@@ -28,7 +28,7 @@ def decode_hostname(labels: bytes) -> str:
         ptr += label_len
     return ".".join(labels_list)
 
-
+T = TypeVar('T', bound='DNSHeader')
 class DNSHeader:
     def __init__(self,
                  id_,
@@ -76,6 +76,21 @@ class DNSHeader:
                 + nscount_bytes
                 + arcount_bytes)
 
+    @classmethod
+    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
+        header = cls(id_ = int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
+                     qr = bool(buf[ptr + 2] & (1 << 7)),
+                     opcode = (buf[ptr + 2] >> 4) % (2 ** 5),
+                     aa = bool(buf[ptr + 2] & (1 << 2)),
+                     tc = bool(buf[ptr + 2] & (1 << 1)),
+                     rd = bool(buf[ptr + 2] & 1),
+                     ra = bool(buf[ptr + 3] & (1 << 7)),
+                     rcode = buf[ptr + 3] % (2 ** 5),
+                     qdcount = int.from_bytes(buf[ptr + 4:ptr + 6], byteorder="big"),
+                     ancount = int.from_bytes(buf[ptr + 6:ptr + 8], byteorder="big"),
+                     nscount = int.from_bytes(buf[ptr + 8:ptr + 10], byteorder="big"),
+                     arcount = int.from_bytes(buf[ptr + 10:ptr + 12], byteorder="big"))
+        return (header, ptr + 12)
 
 T = TypeVar('T', bound='DNSQuestion')
 class DNSQuestion:
@@ -105,6 +120,7 @@ class DNSQuestion:
         return (question, ptr + 2)
 
 
+T = TypeVar('T', bound='DNSResourceRecord')
 class DNSResourceRecord:
     def __init__(self, name, type_, class_, ttl, rdata):
         self.name = name
@@ -121,7 +137,31 @@ class DNSResourceRecord:
                 + len(self.rdata).to_bytes(length=2, byteorder="big")
                 + self.rdata)
 
+    @classmethod
+    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
+        # find the last byte in qname (the null label)
+        qname_end = buf.index(b'\0', ptr)
+        name_bytes = buf[ptr:ptr + qname_end + 1]
+        ptr += qname_end + 1
+        type_bytes = buf[ptr:ptr + 2]
+        ptr += 2
+        class_bytes = buf[ptr:ptr + 2]
+        ptr += 2
+        ttl_bytes = buf[ptr:ptr + 4]
+        ptr += 4
+        rdlength_bytes = buf[ptr:ptr + 2]
+        ptr += 2
 
+        rdlength = int.from_bytes(rdlength_bytes, byteorder="big")
+        resource_record = cls(name = decode_hostname(name_bytes),
+                              type_ = int.from_bytes(type_bytes, byteorder="big"),
+                              class_ = class_bytes.decode("ascii"),
+                              ttl = int.from_bytes(ttl_bytes, byteorder="big"),
+                              rdata = buf[ptr:ptr + rdlength])
+        return (resource_record, ptr + 2)
+
+
+T = TypeVar('T', bound='DNSMessage')
 class DNSMessage:
     def __init__(self,
                  header,
@@ -146,3 +186,29 @@ class DNSMessage:
         for additional_ans in self.additional:
             msg += additional_ans.encode()
         return msg
+
+    @classmethod
+    def decode(cls: Type[T], buf: bytes) -> T:
+        header, ptr = DNSHeader.decode(buf, 0)
+        questions = []
+        for _ in range(header.qdcount):
+            question, ptr = DNSQuestion.decode(buf, ptr)
+            questions.append(question)
+        answers = []
+        for _ in range(header.ancount):
+            answer, ptr = DNSResourceRecord.decode(buf, ptr)
+            answers.append(answer)
+        authority = []
+        for _ in range(header.arcount):
+            authoritative_ans, ptr = DNSResourceRecord.decode(buf, ptr)
+            authority.append(authoritative_ans)
+        additional = []
+        for _ in range(header.nscount):
+            additional_ans, ptr = DNSResourceRecord.decode(but, ptr)
+            additional.append(additional_ans)
+
+        return cls(header=header,
+                   questions=questions,
+                   answers=answers,
+                   authority=authority,
+                   additional=additional)
