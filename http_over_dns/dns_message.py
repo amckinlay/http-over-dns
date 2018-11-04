@@ -1,4 +1,7 @@
 def encode_hostname(hostname):
+    '''
+    Encode a hostname into the length-value format used by DNS.
+    '''
     encoded_hostname = b''
     for label in hostname.split(b'.'):
         encoded_hostname += bytes([len(label)]) + label
@@ -6,6 +9,9 @@ def encode_hostname(hostname):
 
 
 def decode_hostname(bytes_):
+    '''
+    Decode a hostname from the length-value format used by DNS.
+    '''
     decoded_hostname = b''
     ptr = 0
     while ptr < len(bytes_):
