@@ -53,18 +53,18 @@ class DNSHeader:
         self.arcount = arcount
         self.nscount = nscount
 
-    def encode(self):
-        id_bytes = self.id.to_bytes(2, "big")
-        third_byte = bytes([self.qr << 7
-                            | self.opcode << 6
-                            | self.aa << 2
-                            | self.tc << 1
-                            | self.rd])
-        fourth_byte = bytes([self.ra << 7 | self.rcode])
-        qdcount_bytes = self.qdcount.to_bytes(2, "big")
-        ancount_bytes = self.ancount.to_bytes(2, "big")
-        nscount_bytes = self.nscount.to_bytes(2, "big")
-        arcount_bytes = self.arcount.to_bytes(2, "big")
+    def encode(self) -> bytes:
+        id_bytes = self.id.to_bytes(length=2, byteorder="big")
+        third_byte = (self.qr << 7
+                      | self.opcode << 6
+                      | self.aa << 2
+                      | self.tc << 1
+                      | self.rd).to_bytes(length=1, byteorder="big")
+        fourth_byte = (self.ra << 7 | self.rcode).to_bytes(length=1, byteorder="big")
+        qdcount_bytes = self.qdcount.to_bytes(length=2, byteorder="big")
+        ancount_bytes = self.ancount.to_bytes(length=2, byteorder="big")
+        nscount_bytes = self.nscount.to_bytes(length=2, byteorder="big")
+        arcount_bytes = self.arcount.to_bytes(length=2, byteorder="big")
         return (id_bytes
                 + third_byte
                 + fourth_byte
