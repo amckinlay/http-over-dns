@@ -28,6 +28,7 @@ def decode_hostname(labels: bytes) -> str:
         ptr += label_len
     return ".".join(labels_list)
 
+
 T = TypeVar('T', bound='DNSHeader')
 class DNSHeader:
     '''The header section of a DNS message.'''
@@ -93,6 +94,7 @@ class DNSHeader:
                      nscount = int.from_bytes(buf[ptr + 8:ptr + 10], byteorder="big"),
                      arcount = int.from_bytes(buf[ptr + 10:ptr + 12], byteorder="big"))
         return (header, ptr + 12)
+
 
 T = TypeVar('T', bound='DNSQuestion')
 class DNSQuestion:
