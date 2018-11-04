@@ -123,14 +123,14 @@ class DNSMessage:
         self.authority = authority or []
         self.additional = additional or []
 
-    def encode(self):
-        encoded_msg = self.header.encode()
+    def encode(self) -> bytes:
+        msg = self.header.encode()
         for question in self.questions:
-            encoded_msg += question.encode()
+            msg += question.encode()
         for ans in self.answers:
-            encoded_msg += ans.encode()
+            msg += ans.encode()
         for authoritative_ans in self.authority:
-            encoded_msg += authoritative_ans.encode()
+            msg += authoritative_ans.encode()
         for additional_ans in self.additional:
-            encoded_msg += additional_ans.encode()
-        return encoded_msg
+            msg += additional_ans.encode()
+        return msg
