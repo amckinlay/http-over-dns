@@ -1,3 +1,4 @@
+import json
 from typing import List, Type, TypeVar
 
 
@@ -231,3 +232,12 @@ class DNSMessage:
                    answers=answers,
                    authority=authority,
                    additional=additional)
+
+    # some quick debugging
+    def __str__(self):
+        def json_dumps_default(obj):
+            try:
+                return vars(obj)
+            except TypeError:
+                return repr(obj)
+        return json.dumps(self, indent=4, default=json_dumps_default)
