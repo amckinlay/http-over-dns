@@ -187,31 +187,40 @@ class DNSMessage:
 
     def encode(self) -> bytes:
         msg = self.header.encode()
+
         for question in self.questions:
             msg += question.encode()
+
         for ans in self.answers:
             msg += ans.encode()
+
         for authoritative_ans in self.authority:
             msg += authoritative_ans.encode()
+
         for additional_ans in self.additional:
             msg += additional_ans.encode()
+
         return msg
 
     @classmethod
     def decode(cls: Type[T], buf: bytes) -> T:
         header, ptr = DNSHeader.decode(buf, 0)
+
         questions = []
         for _ in range(header.qdcount):
             question, ptr = DNSQuestion.decode(buf, ptr)
             questions.append(question)
+
         answers = []
         for _ in range(header.ancount):
             answer, ptr = DNSResourceRecord.decode(buf, ptr)
             answers.append(answer)
+
         authority = []
         for _ in range(header.arcount):
             authoritative_ans, ptr = DNSResourceRecord.decode(buf, ptr)
             authority.append(authoritative_ans)
+
         additional = []
         for _ in range(header.nscount):
             additional_ans, ptr = DNSResourceRecord.decode(but, ptr)
