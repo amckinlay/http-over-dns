@@ -56,8 +56,8 @@ class DNSHeader:
         self.rcode = rcode
         self.qdcount = qdcount
         self.ancount = ancount
-        self.arcount = arcount
         self.nscount = nscount
+        self.arcount = arcount
 
     def encode(self) -> bytes:
         id_bytes = self.id.to_bytes(length=2, byteorder="big")
