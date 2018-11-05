@@ -1,4 +1,4 @@
-from typing import Type, TypeVar
+from typing import List, Type, TypeVar
 
 
 def encode_hostname(hostname: str) -> bytes:
@@ -34,18 +34,18 @@ class DNSHeader:
     '''The header section of a DNS message.'''
 
     def __init__(self,
-                 id_,
-                 qr,
-                 opcode,
-                 aa,
-                 tc,
-                 rd,
-                 ra,
-                 rcode,
-                 qdcount,
-                 ancount,
-                 nscount,
-                 arcount):
+                 id_: int,
+                 qr: bool,
+                 opcode: int,
+                 aa: bool,
+                 tc: bool,
+                 rd: bool,
+                 ra: bool,
+                 rcode: int,
+                 qdcount: int,
+                 ancount: int,
+                 nscount: int,
+                 arcount: int):
         self.id = id_
         self.qr = qr
         self.opcode = opcode
@@ -100,7 +100,7 @@ T = TypeVar('T', bound='DNSQuestion')
 class DNSQuestion:
     '''Represents a question used to query a server in the questions section of a DNS message.'''
 
-    def __init__(self, qname, qtype, qclass):
+    def __init__(self, qname: str, qtype: int, qclass: str):
         self.qname = qname
         self.qtype = qtype
         self.qclass = qclass
@@ -130,7 +130,7 @@ T = TypeVar('T', bound='DNSResourceRecord')
 class DNSResourceRecord:
     '''Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message.'''
 
-    def __init__(self, name, type_, class_, ttl, rdata):
+    def __init__(self, name: str, type_: int, class_: str, ttl: int, rdata: bytes):
         self.name = name
         self.type = type_
         self.class_ = class_
@@ -174,11 +174,11 @@ class DNSMessage:
     '''Represents a DNS protocol message as defined by RFC 1035.'''
 
     def __init__(self,
-                 header,
-                 questions=None,
-                 answers=None,
-                 authority=None,
-                 additional=None):
+                 header: DNSHeader,
+                 questions: List[DNSQuestion] = None,
+                 answers: List[DNSResourceRecord] = None,
+                 authority: List[DNSResourceRecord] = None,
+                 additional: List[DNSResourceRecord] = None):
         self.header = header
         self.questions = questions or []
         self.answers = answers or []
