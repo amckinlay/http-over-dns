@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Type, TypeVar
 
 
-def encode_hostname(hostname: str) -> bytes:
+def _encode_hostname(hostname: str) -> bytes:
     '''
     Encode a hostname into the length-value format used by DNS.
     '''
@@ -16,7 +16,7 @@ def encode_hostname(hostname: str) -> bytes:
     return encoded
 
 
-def decode_hostname(labels: bytes) -> str:
+def _decode_hostname(labels: bytes) -> str:
     '''
     Decode a hostname from the length-value format used by DNS.
     '''
@@ -95,7 +95,7 @@ class DNSQuestion:
     qclass: str
 
     def encode(self) -> bytes:
-        return (encode_hostname(self.qname)
+        return (_encode_hostname(self.qname)
                 + self.qtype.to_bytes(length=2, byteorder="big")
                 + self.qclass.encode("ascii"))
 
@@ -109,7 +109,7 @@ class DNSQuestion:
         ptr += 2
         qclass_bytes = buf[ptr:ptr + 2]
 
-        question = cls(qname = decode_hostname(qname_bytes),
+        question = cls(qname = _decode_hostname(qname_bytes),
                        qtype = int.from_bytes(qtype_bytes, byteorder="big"),
                        qclass = qclass_bytes.decode("ascii"))
         return (question, ptr + 2)
@@ -127,7 +127,7 @@ class DNSResourceRecord:
     rdata: bytes
 
     def encode(self) -> bytes:
-        return (encode_hostname(self.name)
+        return (_encode_hostname(self.name)
                 + self.type.to_bytes(length=2, byteorder="big")
                 + self.class_.encode("ascii")
                 + self.ttl.to_bytes(length=4, byteorder="big")
@@ -150,7 +150,7 @@ class DNSResourceRecord:
         ptr += 2
 
         rdlength = int.from_bytes(rdlength_bytes, byteorder="big")
-        resource_record = cls(name = decode_hostname(name_bytes),
+        resource_record = cls(name = _decode_hostname(name_bytes),
                               type_ = int.from_bytes(type_bytes, byteorder="big"),
                               class_ = class_bytes.decode("ascii"),
                               ttl = int.from_bytes(ttl_bytes, byteorder="big"),
