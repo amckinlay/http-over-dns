@@ -1,4 +1,4 @@
-import json
+from dataclasses import dataclass, field
 from typing import List, Type, TypeVar
 
 
@@ -31,34 +31,22 @@ def decode_hostname(labels: bytes) -> str:
 
 
 T = TypeVar('T', bound='DNSHeader')
+@dataclass(frozen=True)
 class DNSHeader:
     '''The header section of a DNS message.'''
 
-    def __init__(self,
-                 id_: int,
-                 qr: bool,
-                 opcode: int,
-                 aa: bool,
-                 tc: bool,
-                 rd: bool,
-                 ra: bool,
-                 rcode: int,
-                 qdcount: int,
-                 ancount: int,
-                 nscount: int,
-                 arcount: int):
-        self.id = id_
-        self.qr = qr
-        self.opcode = opcode
-        self.aa = aa
-        self.tc = tc
-        self.rd = rd
-        self.ra = ra
-        self.rcode = rcode
-        self.qdcount = qdcount
-        self.ancount = ancount
-        self.nscount = nscount
-        self.arcount = arcount
+    id: int
+    qr: bool
+    opcode: int
+    aa: bool
+    tc: bool
+    rd: bool
+    ra: bool
+    rcode: int
+    qdcount: int
+    ancount: int
+    nscount: int
+    arcount: int
 
     def encode(self) -> bytes:
         id_bytes = self.id.to_bytes(length=2, byteorder="big")
@@ -98,13 +86,13 @@ class DNSHeader:
 
 
 T = TypeVar('T', bound='DNSQuestion')
+@dataclass(frozen=True)
 class DNSQuestion:
     '''Represents a question used to query a server in the questions section of a DNS message.'''
 
-    def __init__(self, qname: str, qtype: int, qclass: str):
-        self.qname = qname
-        self.qtype = qtype
-        self.qclass = qclass
+    qname: str
+    qtype: int
+    qclass: str
 
     def encode(self) -> bytes:
         return (encode_hostname(self.qname)
@@ -128,15 +116,15 @@ class DNSQuestion:
 
 
 T = TypeVar('T', bound='DNSResourceRecord')
+@dataclass(frozen=True)
 class DNSResourceRecord:
     '''Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message.'''
 
-    def __init__(self, name: str, type_: int, class_: str, ttl: int, rdata: bytes):
-        self.name = name
-        self.type = type_
-        self.class_ = class_
-        self.ttl = ttl
-        self.rdata = rdata
+    name: str
+    type_: int
+    class_: str
+    ttl: int
+    rdata: bytes
 
     def encode(self) -> bytes:
         return (encode_hostname(self.name)
@@ -171,21 +159,16 @@ class DNSResourceRecord:
 
 
 T = TypeVar('T', bound='DNSMessage')
+@dataclass(frozen=True)
 class DNSMessage:
     '''Represents a DNS protocol message as defined by RFC 1035.'''
 
-    def __init__(self,
-                 header: DNSHeader,
-                 questions: List[DNSQuestion] = None,
-                 answers: List[DNSResourceRecord] = None,
-                 authority: List[DNSResourceRecord] = None,
-                 additional: List[DNSResourceRecord] = None):
-        self.header = header
-        self.questions = questions or []
-        self.answers = answers or []
-        self.authority = authority or []
-        self.additional = additional or []
-
+    header: DNSHeader
+    questions: List[DNSQuestion] = field(default_factory=list)
+    answers: List[DNSResourceRecord] = field(default_factory=list)
+    authority: List[DNSResourceRecord] = field(default_factory=list)
+    additional: List[DNSResourceRecord] = field(default_factory=list)
+    
     def encode(self) -> bytes:
         msg = self.header.encode()
 
@@ -232,12 +215,3 @@ class DNSMessage:
                    answers=answers,
                    authority=authority,
                    additional=additional)
-
-    # some quick debugging
-    def __str__(self):
-        def json_dumps_default(obj):
-            try:
-                return vars(obj)
-            except TypeError:
-                return repr(obj)
-        return json.dumps(self, indent=4, default=json_dumps_default)
