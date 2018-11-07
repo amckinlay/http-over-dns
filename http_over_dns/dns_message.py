@@ -103,8 +103,8 @@ class DNSQuestion:
     def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
         # find the last byte in qname (the null label)
         qname_end = buf.index(b'\0', ptr)
-        qname_bytes = buf[ptr:ptr + qname_end + 1]
-        ptr += qname_end + 1
+        qname_bytes = buf[ptr:qname_end + 1]
+        ptr = qname_end + 1
         qtype_bytes = buf[ptr:ptr + 2]
         ptr += 2
         qclass_bytes = buf[ptr:ptr + 2]
@@ -138,8 +138,8 @@ class DNSResourceRecord:
     def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
         # find the last byte in qname (the null label)
         qname_end = buf.index(b'\0', ptr)
-        name_bytes = buf[ptr:ptr + qname_end + 1]
-        ptr += qname_end + 1
+        name_bytes = buf[ptr:qname_end + 1]
+        ptr = qname_end + 1
         type_bytes = buf[ptr:ptr + 2]
         ptr += 2
         class_bytes = buf[ptr:ptr + 2]
