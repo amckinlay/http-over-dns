@@ -70,7 +70,7 @@ class DNSHeader:
 
     @classmethod
     def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
-        header = cls(id_ = int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
+        header = cls(id = int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
                      qr = bool(buf[ptr + 2] & (1 << 7)),
                      opcode = (buf[ptr + 2] >> 4) % (2 ** 5),
                      aa = bool(buf[ptr + 2] & (1 << 2)),
@@ -128,7 +128,7 @@ class DNSResourceRecord:
 
     def encode(self) -> bytes:
         return (_encode_hostname(self.name)
-                + self.type.to_bytes(length=2, byteorder="big")
+                + self.type_.to_bytes(length=2, byteorder="big")
                 + self.class_.encode("ascii")
                 + self.ttl.to_bytes(length=4, byteorder="big")
                 + len(self.rdata).to_bytes(length=2, byteorder="big")
