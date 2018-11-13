@@ -92,12 +92,12 @@ class DNSQuestion:
 
     qname: str
     qtype: int
-    qclass: str
+    qclass: int
 
     def encode(self) -> bytes:
         return (_encode_hostname(self.qname)
                 + self.qtype.to_bytes(length=2, byteorder="big")
-                + self.qclass.encode("ascii"))
+                + self.qclass.to_bytes(length=2, byteorder="big"))
 
     @classmethod
     def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
@@ -111,7 +111,7 @@ class DNSQuestion:
 
         question = cls(qname = _decode_hostname(qname_bytes),
                        qtype = int.from_bytes(qtype_bytes, byteorder="big"),
-                       qclass = qclass_bytes.decode("ascii"))
+                       qclass = int.from_bytes(qclass_bytes, byteorder="big"))
         return (question, ptr + 2)
 
 
@@ -122,14 +122,14 @@ class DNSResourceRecord:
 
     name: str
     type_: int
-    class_: str
+    class_: int
     ttl: int
     rdata: bytes
 
     def encode(self) -> bytes:
         return (_encode_hostname(self.name)
                 + self.type_.to_bytes(length=2, byteorder="big")
-                + self.class_.encode("ascii")
+                + self.class_.to_bytes(length=2, byteorder="big")
                 + self.ttl.to_bytes(length=4, byteorder="big")
                 + len(self.rdata).to_bytes(length=2, byteorder="big")
                 + self.rdata)
@@ -152,7 +152,7 @@ class DNSResourceRecord:
         rdlength = int.from_bytes(rdlength_bytes, byteorder="big")
         resource_record = cls(name = _decode_hostname(name_bytes),
                               type_ = int.from_bytes(type_bytes, byteorder="big"),
-                              class_ = class_bytes.decode("ascii"),
+                              class_ = int.from_bytes(class_bytes, byteorder="big"),
                               ttl = int.from_bytes(ttl_bytes, byteorder="big"),
                               rdata = buf[ptr:ptr + rdlength])
         return (resource_record, ptr + 2)
