@@ -1,7 +1,8 @@
 from socketserver import DatagramRequestHandler, UDPServer
 
 
-class DNSRequestHandler(socketserver.DatagramRequestHandler):
+
+class DNSRequestHandler(DatagramRequestHandler):
     def handle(self):
         print(f"received the following from {self.client_address}:")
         for line in self.rfile:
@@ -10,7 +11,7 @@ class DNSRequestHandler(socketserver.DatagramRequestHandler):
 
 def start():
     print("started!")
-    with socketserver.UDPServer(("127.0.0.1", 1024),
+    with UDPServer(("127.0.0.1", 53),
                                 DNSRequestHandler) as server:
         try:
             server.serve_forever()
