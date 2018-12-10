@@ -207,7 +207,7 @@ class DNSMessage:
 
         additional = []
         for _ in range(header.nscount):
-            additional_ans, ptr = DNSResourceRecord.decode(but, ptr)
+            additional_ans, ptr = DNSResourceRecord.decode(buf, ptr)
             additional.append(additional_ans)
 
         return cls(header=header,
