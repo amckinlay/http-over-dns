@@ -3,9 +3,7 @@ from typing import List, Tuple, Type, TypeVar
 
 
 def _encode_hostname(hostname: str) -> bytes:
-    '''
-    Encode a hostname into the length-value format used by DNS.
-    '''
+    """Encode a hostname into the length-value format used by DNS."""
     encoded = b''
     for label in hostname.split('.'):
         encoded += (len(label).to_bytes(length=1, byteorder="big")
@@ -17,9 +15,7 @@ def _encode_hostname(hostname: str) -> bytes:
 
 
 def _decode_hostname(labels: bytes) -> str:
-    '''
-    Decode a hostname from the length-value format used by DNS.
-    '''
+    """Decode a hostname from the length-value format used by DNS."""
     labels_list = []
     ptr = 0
     while ptr < len(labels):
@@ -33,7 +29,7 @@ def _decode_hostname(labels: bytes) -> str:
 DNSHeader_T = TypeVar('DNSHeader_T', bound='DNSHeader')
 @dataclass(frozen=True)
 class DNSHeader:
-    '''The header section of a DNS message.'''
+    """The header section of a DNS message."""
 
     id: int
     qr: bool
@@ -69,26 +65,26 @@ class DNSHeader:
                 + arcount_bytes)
 
     @classmethod
-        header = cls(id = int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
-                     qr = bool(buf[ptr + 2] & (1 << 7)),
-                     opcode = (buf[ptr + 2] >> 4) % (2 ** 5),
-                     aa = bool(buf[ptr + 2] & (1 << 2)),
-                     tc = bool(buf[ptr + 2] & (1 << 1)),
-                     rd = bool(buf[ptr + 2] & 1),
-                     ra = bool(buf[ptr + 3] & (1 << 7)),
-                     rcode = buf[ptr + 3] % (2 ** 5),
-                     qdcount = int.from_bytes(buf[ptr + 4:ptr + 6], byteorder="big"),
-                     ancount = int.from_bytes(buf[ptr + 6:ptr + 8], byteorder="big"),
-                     nscount = int.from_bytes(buf[ptr + 8:ptr + 10], byteorder="big"),
-                     arcount = int.from_bytes(buf[ptr + 10:ptr + 12], byteorder="big"))
     def decode(cls: Type[DNSHeader_T], buf: bytes, ptr: int) -> Tuple[DNSHeader_T, int]:
+        header = cls(id=int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
+                     qr=bool(buf[ptr + 2] & (1 << 7)),
+                     opcode=(buf[ptr + 2] >> 4) % (2 ** 5),
+                     aa=bool(buf[ptr + 2] & (1 << 2)),
+                     tc=bool(buf[ptr + 2] & (1 << 1)),
+                     rd=bool(buf[ptr + 2] & 1),
+                     ra=bool(buf[ptr + 3] & (1 << 7)),
+                     rcode=buf[ptr + 3] % (2 ** 5),
+                     qdcount=int.from_bytes(buf[ptr + 4:ptr + 6], byteorder="big"),
+                     ancount=int.from_bytes(buf[ptr + 6:ptr + 8], byteorder="big"),
+                     nscount=int.from_bytes(buf[ptr + 8:ptr + 10], byteorder="big"),
+                     arcount=int.from_bytes(buf[ptr + 10:ptr + 12], byteorder="big"))
         return (header, ptr + 12)
 
 
 DNSQuestion_T = TypeVar('DNSQuestion_T', bound='DNSQuestion')
 @dataclass(frozen=True)
 class DNSQuestion:
-    '''Represents a question used to query a server in the questions section of a DNS message.'''
+    """Represents a question used to query a server in the questions section of a DNS message."""
 
     qname: str
     qtype: int
@@ -109,16 +105,16 @@ class DNSQuestion:
         ptr += 2
         qclass_bytes = buf[ptr:ptr + 2]
 
-        question = cls(qname = _decode_hostname(qname_bytes),
-                       qtype = int.from_bytes(qtype_bytes, byteorder="big"),
-                       qclass = int.from_bytes(qclass_bytes, byteorder="big"))
+        question = cls(qname=_decode_hostname(qname_bytes),
+                       qtype=int.from_bytes(qtype_bytes, byteorder="big"),
+                       qclass=int.from_bytes(qclass_bytes, byteorder="big"))
         return (question, ptr + 2)
 
 
 DNSResourceRecord_T = TypeVar('DNSResourceRecord_T', bound='DNSResourceRecord')
 @dataclass(frozen=True)
 class DNSResourceRecord:
-    '''Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message.'''
+    """Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message."""
 
     name: str
     type_: int
@@ -150,18 +146,18 @@ class DNSResourceRecord:
         ptr += 2
 
         rdlength = int.from_bytes(rdlength_bytes, byteorder="big")
-        resource_record = cls(name = _decode_hostname(name_bytes),
-                              type_ = int.from_bytes(type_bytes, byteorder="big"),
-                              class_ = int.from_bytes(class_bytes, byteorder="big"),
-                              ttl = int.from_bytes(ttl_bytes, byteorder="big"),
-                              rdata = buf[ptr:ptr + rdlength])
+        resource_record = cls(name=_decode_hostname(name_bytes),
+                              type_=int.from_bytes(type_bytes, byteorder="big"),
+                              class_=int.from_bytes(class_bytes, byteorder="big"),
+                              ttl=int.from_bytes(ttl_bytes, byteorder="big"),
+                              rdata=buf[ptr:ptr + rdlength])
         return (resource_record, ptr + 2)
 
 
 DNSMessage_T = TypeVar('DNSMessage_T', bound='DNSMessage')
 @dataclass(frozen=True)
 class DNSMessage:
-    '''Represents a DNS protocol message as defined by RFC 1035.'''
+    """Represents a DNS protocol message as defined by RFC 1035."""
 
     header: DNSHeader
     questions: List[DNSQuestion] = field(default_factory=list)
