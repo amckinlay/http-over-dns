@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Type, TypeVar
+from typing import List, Tuple, Type, TypeVar
 
 
 def _encode_hostname(hostname: str) -> bytes:
@@ -30,7 +30,7 @@ def _decode_hostname(labels: bytes) -> str:
     return ".".join(labels_list)
 
 
-T = TypeVar('T', bound='DNSHeader')
+DNSHeader_T = TypeVar('DNSHeader_T', bound='DNSHeader')
 @dataclass(frozen=True)
 class DNSHeader:
     '''The header section of a DNS message.'''
@@ -69,7 +69,6 @@ class DNSHeader:
                 + arcount_bytes)
 
     @classmethod
-    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
         header = cls(id = int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
                      qr = bool(buf[ptr + 2] & (1 << 7)),
                      opcode = (buf[ptr + 2] >> 4) % (2 ** 5),
@@ -82,10 +81,11 @@ class DNSHeader:
                      ancount = int.from_bytes(buf[ptr + 6:ptr + 8], byteorder="big"),
                      nscount = int.from_bytes(buf[ptr + 8:ptr + 10], byteorder="big"),
                      arcount = int.from_bytes(buf[ptr + 10:ptr + 12], byteorder="big"))
+    def decode(cls: Type[DNSHeader_T], buf: bytes, ptr: int) -> Tuple[DNSHeader_T, int]:
         return (header, ptr + 12)
 
 
-T = TypeVar('T', bound='DNSQuestion')
+DNSQuestion_T = TypeVar('DNSQuestion_T', bound='DNSQuestion')
 @dataclass(frozen=True)
 class DNSQuestion:
     '''Represents a question used to query a server in the questions section of a DNS message.'''
@@ -100,7 +100,7 @@ class DNSQuestion:
                 + self.qclass.to_bytes(length=2, byteorder="big"))
 
     @classmethod
-    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
+    def decode(cls: Type[DNSQuestion_T], buf: bytes, ptr: int) -> Tuple[DNSQuestion_T, int]:
         # find the last byte in qname (the null label)
         qname_end = buf.index(b'\0', ptr)
         qname_bytes = buf[ptr:qname_end + 1]
@@ -115,7 +115,7 @@ class DNSQuestion:
         return (question, ptr + 2)
 
 
-T = TypeVar('T', bound='DNSResourceRecord')
+DNSResourceRecord_T = TypeVar('DNSResourceRecord_T', bound='DNSResourceRecord')
 @dataclass(frozen=True)
 class DNSResourceRecord:
     '''Represents a DNS resource record used in the answer, authority, and additional sections of a DNS message.'''
@@ -135,7 +135,7 @@ class DNSResourceRecord:
                 + self.rdata)
 
     @classmethod
-    def decode(cls: Type[T], buf: bytes, ptr: int) -> (T, int):
+    def decode(cls: Type[DNSResourceRecord_T], buf: bytes, ptr: int) -> Tuple[DNSResourceRecord_T, int]:
         # find the last byte in qname (the null label)
         qname_end = buf.index(b'\0', ptr)
         name_bytes = buf[ptr:qname_end + 1]
@@ -158,7 +158,7 @@ class DNSResourceRecord:
         return (resource_record, ptr + 2)
 
 
-T = TypeVar('T', bound='DNSMessage')
+DNSMessage_T = TypeVar('DNSMessage_T', bound='DNSMessage')
 @dataclass(frozen=True)
 class DNSMessage:
     '''Represents a DNS protocol message as defined by RFC 1035.'''
@@ -168,7 +168,7 @@ class DNSMessage:
     answers: List[DNSResourceRecord] = field(default_factory=list)
     authority: List[DNSResourceRecord] = field(default_factory=list)
     additional: List[DNSResourceRecord] = field(default_factory=list)
-    
+
     def encode(self) -> bytes:
         msg = self.header.encode()
 
@@ -187,7 +187,7 @@ class DNSMessage:
         return msg
 
     @classmethod
-    def decode(cls: Type[T], buf: bytes) -> T:
+    def decode(cls: Type[DNSMessage_T], buf: bytes) -> DNSMessage_T:
         header, ptr = DNSHeader.decode(buf, 0)
 
         questions = []
