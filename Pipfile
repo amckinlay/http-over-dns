@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 
 [dev-packages]
+flake8 = "*"
+mypy = "*"
+pydocstyle = "*"
+pycodestyle = "*"
+rope = "*"
+autopep8 = "*"
 
 [requires]
 python_version = "3.7"

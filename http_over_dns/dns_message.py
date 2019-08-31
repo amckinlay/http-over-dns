@@ -31,21 +31,21 @@ DNSHeader_T = TypeVar('DNSHeader_T', bound='DNSHeader')
 class DNSHeader:
     """The header section of a DNS message."""
 
-    id: int
-    qr: bool
-    opcode: int
-    aa: bool
-    tc: bool
-    rd: bool
-    ra: bool
-    rcode: int
-    qdcount: int
-    ancount: int
-    nscount: int
-    arcount: int
+    id_: int
+    qr: bool = False
+    opcode: int = 0
+    aa: bool = False
+    tc: bool = False
+    rd: bool = False
+    ra: bool = False
+    rcode: int = 0
+    qdcount: int = 0
+    ancount: int = 0
+    nscount: int = 0
+    arcount: int = 0
 
     def encode(self) -> bytes:
-        id_bytes = self.id.to_bytes(length=2, byteorder="big")
+        id_bytes = self.id_.to_bytes(length=2, byteorder="big")
         third_byte = (self.qr << 7
                       | self.opcode << 6
                       | self.aa << 2
@@ -66,7 +66,7 @@ class DNSHeader:
 
     @classmethod
     def decode(cls: Type[DNSHeader_T], buf: bytes, ptr: int) -> Tuple[DNSHeader_T, int]:
-        header = cls(id=int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
+        header = cls(id_=int.from_bytes(buf[ptr:ptr + 2], byteorder="big"),
                      qr=bool(buf[ptr + 2] & (1 << 7)),
                      opcode=(buf[ptr + 2] >> 4) % (2 ** 5),
                      aa=bool(buf[ptr + 2] & (1 << 2)),
@@ -88,7 +88,7 @@ class DNSQuestion:
 
     qname: str
     qtype: int
-    qclass: int
+    qclass: int = 0
 
     def encode(self) -> bytes:
         return (_encode_hostname(self.qname)
@@ -118,8 +118,8 @@ class DNSResourceRecord:
 
     name: str
     type_: int
-    class_: int
-    ttl: int
+    class_: int = 1
+    ttl: int = 0
     rdata: bytes
 
     def encode(self) -> bytes:

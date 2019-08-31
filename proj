@@ -1,0 +1,23 @@
+- figure out how to send multi-part dns messages
+- figure out what backend http to dns on client
+    - http proxy?
+- implement server
+    - socket-based session management - won't work
+    - assume no loss, no re-ordering, no dupes, no congestion - won't work
+    - no encryption, no user validation
+    - simple contents-based message multi-part construction
+
+split http into dns packets with randomly-selected session id
+server understands http and total stream length
+responds with empty answers, echoed question serves as ack
+client sends next packet after receiving implicit ack from last
+after sending entire stream, client sends empty questions
+first response includes beginning of http data
+client keeps requesting more until the end
+server removes session
+
+
+
+- https://www.mnot.net/blog/2011/07/11/what_proxies_must_do
+- include wireshark in paper
+- google dns dev article showing case-insensitivity

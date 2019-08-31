@@ -1,0 +1,3 @@
+figure out how validation, immutability, and dataclasses work together
+figure out how to make big bit parsing expressions more modular -- use external bitstruct module
+be pythonic and use big words for properties and functions, not dns abbreviations
